@@ -51,7 +51,7 @@ namespace ICoaster.Router.WebSocketRouter
         {
             (string message, _, WebSocketReceiveResult result) = await WebSocketMessage.GetMessageAsync(socket);
 
-            var tips = $"Receive message: {message}, but no handler can handle this request";
+            var tips = $"Receive message: {message}, but no handler can handle this request.";
             _logger.LogError(tips);
 
             var error = Encoding.UTF8.GetBytes(tips);

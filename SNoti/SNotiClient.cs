@@ -135,12 +135,10 @@ namespace SNotiSSL
             }
             else if (command.Equals(SNotiCommandType.Pong))
             {
+                // 更新Pong时间
                 HeartbeatTimer.OnNext(DateTime.Now);
             }
-            else MessageHandler.ForEach(handle => 
-            {
-                handle(message);
-            });
+            else MessageHandler.ForEach(handle => handle(message));
         }
 
         private void RegisterHeartbeatSender()

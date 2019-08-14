@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using ICoaster.Router.WebSocketRouter;
 using SNotiSSL;
 using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ICoaster.WsControllers
 {
@@ -17,7 +16,7 @@ namespace ICoaster.WsControllers
     {
         private readonly ILogger<SNotiController> _logger;
         private readonly SNotiClient _client;
-        public SNotiController(ILogger<SNotiController> logger, IServiceProvider provider)
+        public SNotiController(ILogger<SNotiController> logger)
         {
             _logger = logger;
             _client = WsRouter.SNotiCilentSingleton;
@@ -25,7 +24,7 @@ namespace ICoaster.WsControllers
         }
 
         [SubPath(Path = "ws")]
-        public async Task RepeaterHandler(HttpContext context, WebSocket socket)
+        public async Task SNotiPushHandler(HttpContext context, WebSocket socket)
         {
             var handler = new Action<JObject>(async (msg) =>
             {
