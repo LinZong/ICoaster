@@ -10,6 +10,7 @@ using SNotiSSL.Config;
 using SNotiSSL.Model;
 using SNotiSSL.Model.Request;
 using SNotiSSL.Model.Response;
+using SNotiSSL.Utils;
 
 namespace SNotiSSL
 {
@@ -23,7 +24,7 @@ namespace SNotiSSL
         private IDisposable HeartbeatGenerator = null;
         private Subject<DateTime> HeartbeatTimer = new Subject<DateTime>();
         private IDisposable HeartbeatTimeoutWatcher = null;
-        public List<Action<JObject>> MessageHandler = new List<Action<JObject>>();
+        public Dictionary<string,Action<JObject>> MessageHandler = new Dictionary<string,Action<JObject>>();
         private Task ReceiveMessageTask = null;
         public SNotiClient(IOptions<SNotiClientConfig> config)
         {
@@ -40,8 +41,8 @@ namespace SNotiSSL
 
         public bool CanUseSNotiClient() => IsSSLConnected && IsSNotiLogined;
 
-        public void AddMessageHandler(Action<JObject> handler) => MessageHandler.Add(handler);
-        public void RemoveMessageHandler(Action<JObject> handler) => MessageHandler.Remove(handler);
+        public void AddMessageHandler(string Did, Action<JObject> handler) => MessageHandler.Add(Did,handler);
+        public void RemoveMessageHandler(string Did) => MessageHandler.Remove(Did);
         public void Connect()
         {
             if (IsSSLConnected)
@@ -138,7 +139,18 @@ namespace SNotiSSL
                 // 更新Pong时间
                 HeartbeatTimer.OnNext(DateTime.Now);
             }
-            else MessageHandler.ForEach(handle => handle(message));
+            else if(message.ContainsKey("did"))
+            {
+                MessageHandler.TryGetValueOrDefault(message["did"].Value<string>())?.Invoke(message);
+            }
+            else 
+            {
+                // 广播全局消息
+                foreach (var handler in MessageHandler.Values)
+                {
+                    handler(message);
+                }
+            }
         }
 
         private void RegisterHeartbeatSender()

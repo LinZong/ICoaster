@@ -83,8 +83,12 @@ namespace ICoaster
                 if (context.WebSockets.IsWebSocketRequest)
                 {
                     // 先检查有没有Token附在ws上
-                    var url = Url.Combine(context.Request.GetDisplayUrl());
-                    var reqUrl = new Url(url);
+                    var reqUrl = new Url(context.Request.GetDisplayUrl());
+                    if(!reqUrl.QueryParams.ContainsKey("did"))
+                    {
+                        context.Response.StatusCode = 400;
+                        return;
+                    }
                     if(!reqUrl.QueryParams.ContainsKey("token"))
                     {
                         context.Response.StatusCode = 401;

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using SNotiSSL.Model;
 
@@ -22,6 +24,19 @@ namespace SNotiSSL.Utils
                 }
             }
             return true;
+        }
+
+        public static TValue TryGetValueOrDefault<TKey,TValue>(this Dictionary<TKey,TValue> dic,TKey key)
+        {
+            return (dic.TryGetValue(key,out var value)) ? value : (TValue) GetDefaultValue(typeof(TValue));
+        }
+        private static object GetDefaultValue(Type type)
+        {
+            if (type.IsValueType && Nullable.GetUnderlyingType(type) == null)
+            {
+                return Activator.CreateInstance(type);
+            }
+            return null;
         }
     }
 }

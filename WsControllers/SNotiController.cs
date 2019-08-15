@@ -26,13 +26,8 @@ namespace ICoaster.WsControllers
         [SubPath(Path = "ws")]
         public async Task SNotiPushHandler(HttpContext context, WebSocket socket)
         {
-            var handler = new Action<JObject>(async (msg) =>
-            {
-                var str = msg.ToString();
-                var response = Encoding.UTF8.GetBytes(str);
-                await socket.SendAsync(new System.ArraySegment<byte>(response), WebSocketMessageType.Text, true, CancellationToken.None);
-            });
-            _client.AddMessageHandler(handler);
+            var did = context.Request.Query["did"];
+            _client.AddMessageHandler(did,(msg) => SNotiMessageDefaultHandler(msg,socket));
 
             var recv = await WebSocketMessage.GetMessageAsync(socket);
             while (!recv.Item3.CloseStatus.HasValue)
@@ -40,13 +35,21 @@ namespace ICoaster.WsControllers
                 (string message, _, WebSocketReceiveResult result) = recv;
                 _logger.LogInformation($"Receive message: {message}");
 
-                var response = Encoding.UTF8.GetBytes($"{message} -- OK!");
-                await socket.SendAsync(new System.ArraySegment<byte>(response), result.MessageType, result.EndOfMessage, CancellationToken.None);
+                // 转手发送给机智云
+                _client.SendMessage(message);
 
                 recv = await WebSocketMessage.GetMessageAsync(socket);
             }
             await socket.CloseAsync(recv.Item3.CloseStatus.Value, recv.Item3.CloseStatusDescription, CancellationToken.None);
-            _client.RemoveMessageHandler(handler);
+            _client.RemoveMessageHandler(did);
+        }
+
+
+        private async void SNotiMessageDefaultHandler(JObject msg, WebSocket socket)
+        {
+            var str = msg.ToString();
+            var response = Encoding.UTF8.GetBytes(str);
+            await socket.SendAsync(new System.ArraySegment<byte>(response), WebSocketMessageType.Text, true, CancellationToken.None);
         }
     }
 }
