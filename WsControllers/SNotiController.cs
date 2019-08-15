@@ -35,8 +35,13 @@ namespace ICoaster.WsControllers
                 (string message, _, WebSocketReceiveResult result) = recv;
                 _logger.LogInformation($"Receive message: {message}");
 
+                if(message.ToLower() == "ping")
+                {
+                    var pong = Encoding.UTF8.GetBytes("pong");
+                    await socket.SendAsync(new System.ArraySegment<byte>(pong), WebSocketMessageType.Text, true, CancellationToken.None);
+                }
                 // 转手发送给机智云
-                _client.SendMessage(message);
+                else _client.SendMessage(message);
 
                 recv = await WebSocketMessage.GetMessageAsync(socket);
             }
