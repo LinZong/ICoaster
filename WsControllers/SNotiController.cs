@@ -45,7 +45,6 @@ namespace ICoaster.WsControllers
 
                 recv = await WebSocketMessage.GetMessageAsync(socket);
             }
-
             await socket.CloseAsync(recv.Item3.CloseStatus.Value, recv.Item3.CloseStatusDescription, CancellationToken.None);
             _client.RemoveMessageHandler(handler);
         }
